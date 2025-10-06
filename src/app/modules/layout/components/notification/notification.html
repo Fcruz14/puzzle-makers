@@ -17,7 +17,7 @@
       }
       
       <span
-        class="tooltip absolute left-[-130px] top-1/2 -translate-y-1/2 px-3 py-1 text-sm
+        class="tooltip absolute left-[-130px] top-1/2 z-[9999] -translate-y-1/2 px-3 py-1 text-sm
                bg-black/90 text-white rounded-md opacity-0 pointer-events-none
                group-hover:opacity-100 group-hover:translate-x-[-0.5rem]
                transition-all duration-300 whitespace-nowrap shadow-lg"
@@ -26,6 +26,24 @@
       </span>
     </button>
 </div>
+
+
+<div class="absolute z-[999] right-3 top-2">
+  <button
+    class="group absolute top-4 right-20 bg-white/90 backdrop-blur-md
+           p-4 rounded-full shadow-lg border border-gray-200
+           hover:scale-110 hover:shadow-xl transition-all duration-300
+           cursor-pointer active:scale-95 flex items-center justify-center"
+    aria-label="points"
+  >
+    <span class="text-xl md:text-2xl font-bold text-blue-600
+                 drop-shadow-md transition-all duration-300">
+      {{ totalPoints }}
+    </span>
+  </button>
+</div>
+
+
 
 @if (isModalOpen()) {
     <app-modal-info 

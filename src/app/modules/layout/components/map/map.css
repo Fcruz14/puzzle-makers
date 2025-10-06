@@ -11,4 +11,12 @@
     position: absolute;
     inset: 0;
   }
-  
+.map-container {
+  height: 100vh;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.leaflet-marker-icon {
+  transition: transform 0.2s ease-in-out;
+}

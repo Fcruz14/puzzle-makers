@@ -1,66 +1,148 @@
-
 <!-- Botón minimizado -->
 @if(isMinimized()) {
   <button 
     (click)="toggleMinimize()"
-    class="fixed bottom-4 right-5 z-[9999] w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group">
+    class="fixed bottom-4 right-5 z-[9999] w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group">
     <svg class="w-8 h-8 text-white transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
-    <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
+    <span class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse"></span>
   </button>
 }
-@else{
+@else {
 <!-- Panel principal -->
 <section 
-  class="z-[9999] fade-in absolute bottom-8 right-5 w-80 bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 ease-in-out transform"
-  [class.translate-x-0]="!isMinimized()"
-  [class.translate-x-full]="isMinimized()">
+  class="z-[9999] fade-in absolute bottom-8 right-5 w-80 bg-gradient-to-b from-green-50 to-emerald-50 rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 ease-in-out transform border-2 border-green-200">
   
-  <!-- Header -->
-  <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4 flex justify-between items-center">
-    <h3 class="text-white font-bold text-lg">Asistente Frank</h3>
-    <button 
-      (click)="toggleMinimize()"
-      class="text-white hover:bg-white/20 rounded-lg p-2 transition-colors duration-200">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
+  <!-- Header con tema natural -->
+  <div class="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 p-4">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"></path>
+        </svg>
+        <h3 class="text-white font-bold text-lg">Asistente Frank 🌱</h3>
+      </div>
+      <button 
+        (click)="toggleMinimize()"
+        class="text-white hover:bg-white/20 rounded-lg p-2 transition-colors duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Barra de progreso -->
+    @if(hasQuestions() && !allQuestionsCompleted()) {
+      <div class="mt-3">
+        <div class="flex justify-between text-xs text-white/90 mb-1">
+          <span>Progreso</span>
+          <span>{{ currentQuestionIndex() }}/{{ questions().length }}</span>
+        </div>
+        <div class="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+          <div 
+            class="bg-white h-full rounded-full transition-all duration-500"
+            [style.width.%]="getProgressPercentage()">
+          </div>
+        </div>
+      </div>
+    }
   </div>
 
   <!-- Contenido -->
-  <div class="p-6 max-h-[calc(80vh-80px)] overflow-y-auto">
+  <div class="p-6 max-h-[calc(90vh-140px)] overflow-y-auto custom-scrollbar">
     
-    @if(isNew()) {
-      <!-- Mensaje de bienvenida -->
+    @if(isNew() || !hasQuestions()) {
+      <!-- Mensaje de bienvenida o sin preguntas -->
       <div class="space-y-4">
-        <!-- Personaje Frank -->
+        <!-- Personaje Frank - Tema natural -->
         <div class="flex justify-center mb-4">
-          <div class="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg animate-bounce-slow">
-            <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-            </svg>
+          <div class="relative">
+            <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg animate-bounce-slow">
+              <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM10 7a3 3 0 100 6 3 3 0 000-6zM15.657 5.404a.75.75 0 10-1.06-1.06l-1.061 1.06a.75.75 0 001.06 1.06l1.06-1.06zM6.464 14.596a.75.75 0 10-1.06-1.06l-1.06 1.06a.75.75 0 001.06 1.06l1.06-1.06zM18 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0118 10zM5 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 015 10zM14.596 15.657a.75.75 0 001.06-1.06l-1.06-1.061a.75.75 0 10-1.06 1.06l1.06 1.06zM5.404 6.464a.75.75 0 001.06-1.06l-1.06-1.06a.75.75 0 10-1.061 1.06l1.06 1.06z"></path>
+              </svg>
+            </div>
+            <!-- Hojas decorativas -->
+            <div class="absolute -top-1 -right-1 text-2xl">🍃</div>
+            <div class="absolute -bottom-1 -left-1 text-2xl">🌿</div>
           </div>
         </div>
 
-        <!-- Caja de texto con animación -->
-        <div class="bg-gray-100 rounded-xl p-4 relative">
-          <div class="absolute -top-2 left-8 w-4 h-4 bg-gray-100 transform rotate-45"></div>
+        <!-- Caja de texto con tema natural -->
+        <div class="bg-white/80 backdrop-blur rounded-xl p-4 relative shadow-md border border-green-200">
+          <div class="absolute -top-2 left-8 w-4 h-4 bg-white border-l-2 border-t-2 border-green-200 transform rotate-45"></div>
           <p class="text-gray-800 text-base leading-relaxed min-h-[60px]">
             {{ displayedText() }}
             @if(isTyping()) {
-              <span class="inline-block w-1 h-5 bg-blue-500 animate-pulse ml-1"></span>
+              <span class="inline-block w-1 h-5 bg-green-500 animate-pulse ml-1"></span>
             }
           </p>
         </div>
 
-        <!-- Botón de comenzar -->
+        <!-- Indicador visual del mapa -->
         @if(!isTyping()) {
+          <div class="bg-gradient-to-r from-blue-100 to-green-100 rounded-xl p-4 border-2 border-dashed border-green-400">
+            <div class="flex items-center gap-3">
+              <div class="bg-white rounded-full p-3 shadow-md">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-800">Toca el mapa 🗺️</p>
+                <p class="text-xs text-gray-600">Explora diferentes ubicaciones</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if(allQuestionsCompleted()) {
+      <!-- Mensaje de completado -->
+      <div class="space-y-4">
+        <!-- Personaje Frank celebrando -->
+        <div class="flex justify-center mb-4">
+          <div class="relative animate-bounce-slow">
+            <div class="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+              <span class="text-4xl">🎉</span>
+            </div>
+            <!-- Efectos de celebración -->
+            <div class="absolute -top-2 -left-2 text-2xl animate-spin-slow">⭐</div>
+            <div class="absolute -top-2 -right-2 text-2xl animate-spin-slow">🌟</div>
+            <div class="absolute -bottom-2 -left-2 text-2xl animate-bounce">✨</div>
+            <div class="absolute -bottom-2 -right-2 text-2xl animate-bounce">💫</div>
+          </div>
+        </div>
+
+        <!-- Caja de mensaje de completado -->
+        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 relative shadow-md border-2 border-yellow-400">
+          <div class="absolute -top-2 left-8 w-4 h-4 bg-yellow-50 border-l-2 border-t-2 border-yellow-400 transform rotate-45"></div>
+          <p class="text-gray-800 text-base leading-relaxed min-h-[60px]">
+            {{ displayedText() }}
+            @if(isTyping()) {
+              <span class="inline-block w-1 h-5 bg-orange-500 animate-pulse ml-1"></span>
+            }
+          </p>
+        </div>
+
+        <!-- Estadísticas finales -->
+        @if(!isTyping()) {
+          <div class="bg-white rounded-xl p-4 shadow-md border-2 border-green-300">
+            <div class="text-center space-y-2">
+              <p class="text-sm text-gray-600">Preguntas completadas: {{ answeredQuestions().length }}/{{ questions().length }}</p>
+            </div>
+          </div>
+
+          <!-- Botón para explorar más -->
           <button 
-            (click)="handleStart()"
-            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-            ¡Comenzar!
+            (click)="resetToWelcome()"
+            class="w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            Explorar nuevo punto 🗺️
           </button>
         }
       </div>
@@ -69,53 +151,90 @@
       <div class="space-y-4">
         <!-- Personaje Frank -->
         <div class="flex justify-center mb-4">
-          <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-            <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-            </svg>
+          <div class="relative">
+            <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+              <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM10 7a3 3 0 100 6 3 3 0 000-6zM15.657 5.404a.75.75 0 10-1.06-1.06l-1.061 1.06a.75.75 0 001.06 1.06l1.06-1.06zM6.464 14.596a.75.75 0 10-1.06-1.06l-1.06 1.06a.75.75 0 001.06 1.06l1.06-1.06zM18 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0118 10zM5 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 015 10zM14.596 15.657a.75.75 0 001.06-1.06l-1.06-1.061a.75.75 0 10-1.06 1.06l1.06 1.06zM5.404 6.464a.75.75 0 001.06-1.06l-1.06-1.06a.75.75 0 10-1.061 1.06l1.06 1.06z"></path>
+              </svg>
+            </div>
+            <div class="absolute -top-1 -right-1 text-xl">🌍</div>
           </div>
         </div>
 
         <!-- Caja de pregunta -->
-        <div class="bg-blue-50 rounded-xl p-4 relative border-2 border-blue-200">
-          <div class="absolute -top-2 left-8 w-4 h-4 bg-blue-50 border-l-2 border-t-2 border-blue-200 transform rotate-45"></div>
+        <div class="bg-white/90 backdrop-blur rounded-xl p-4 relative border-2 border-green-300 shadow-md">
+          <div class="absolute -top-2 left-8 w-4 h-4 bg-white border-l-2 border-t-2 border-green-300 transform rotate-45"></div>
           <p class="text-gray-800 text-base font-medium leading-relaxed min-h-[60px]">
             {{ displayedText() }}
             @if(isTyping()) {
-              <span class="inline-block w-1 h-5 bg-blue-500 animate-pulse ml-1"></span>
+              <span class="inline-block w-1 h-5 bg-green-500 animate-pulse ml-1"></span>
             }
           </p>
         </div>
 
+        <!-- Feedback de respuesta -->
+        @if(showFeedback()) {
+          <div 
+            class="p-4 rounded-lg flex items-center gap-3 animate-fade-in"
+            [class.bg-green-100]="isCorrect()"
+            [class.bg-red-100]="!isCorrect()"
+            [class.border-green-400]="isCorrect()"
+            [class.border-red-400]="!isCorrect()"
+            class="border-2">
+            @if(isCorrect()) {
+              <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-green-800 font-semibold">¡Correcto! +{{ actualQuestion().points }} puntos 🎉</span>
+            } @else {
+              <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-red-800 font-semibold">Incorrecto. ¡Sigue intentando! 💪</span>
+            }
+          </div>
+        }
+
         <!-- Alternativas -->
-        @if(!isTyping() && actualQuestion().alternatives.length > 0) {
+        @if(!isTyping() && !showFeedback() && actualQuestion().alternatives && actualQuestion().alternatives.length > 0) {
           <div class="space-y-2 animate-fade-in">
-            <p class="text-sm font-semibold text-gray-600 mb-2">Selecciona una respuesta:</p>
+            <p class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
+              </svg>
+              Selecciona tu respuesta:
+            </p>
             @for(alternative of actualQuestion().alternatives; track alternative.id) {
               <button
-                (click)="selectAnswer(alternative)"
+                (click)="onSelectAnswer(alternative)"
                 [style.background-color]="alternative.color"
-                class="text-white w-full text-left px-4 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+                class="text-white w-full text-left px-4 py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border-2 border-white/30">
                 {{ alternative.description }}
               </button>
             }
           </div>
         }
 
-        <!-- Información de puntos -->
-        @if(!isTyping()) {
-          <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-            <span class="text-sm text-gray-600">Puntos: <strong>{{ actualQuestion().points }}</strong></span>
-            <button 
-              (click)="skipQuestion.emit()"
-              class="text-sm text-gray-500 hover:text-red-500 transition-colors duration-200">
-              Saltar pregunta →
-            </button>
+        <!-- Información de puntos y controles -->
+        @if(!isTyping() && !showFeedback()) {
+          <div class="space-y-3 pt-4 border-t border-green-200">
+            
+            <div class="flex gap-2">
+              <button 
+                (click)="skipQuestion()"
+                class="flex-1 text-sm text-gray-600 hover:text-orange-600 hover:bg-orange-50 py-2 px-3 rounded-lg transition-all duration-200 border border-gray-300 font-medium">
+                Saltar →
+              </button>
+              <button 
+                (click)="resetToWelcome()"
+                class="flex-1 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 py-2 px-3 rounded-lg transition-all duration-200 border border-gray-300 font-medium">
+                Nuevo punto 🗺️
+              </button>
+            </div>
           </div>
         }
       </div>
     }
   </div>
 </section>
-
 }

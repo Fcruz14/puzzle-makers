@@ -27,10 +27,6 @@ export class Home implements AfterViewInit, OnDestroy {
     region: 'Santa Maria del Mar'
   };
 
-  // ============================
-  // 🔩 VARIABLES INTERNAS
-  // ============================
-
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
@@ -71,10 +67,6 @@ export class Home implements AfterViewInit, OnDestroy {
     window.removeEventListener('wheel', this.onWheel);
     window.removeEventListener('resize', this.onResize);
   }
-
-  // ============================
-  // 🪐 ESCENA Y RENDER
-  // ============================
 
   private initScene(): void {
     const canvas = this.canvasRef.nativeElement;
@@ -134,20 +126,6 @@ export class Home implements AfterViewInit, OnDestroy {
     fillLight.position.set(-5, -3, -5);
     this.scene.add(fillLight);
 
-    // Estrellas de fondo
-
-    // const stars = new THREE.Mesh(
-    //   new THREE.SphereGeometry(90, 64, 64),
-    //   new THREE.MeshBasicMaterial({ 
-    //     map: starsTexture, 
-    //     side: THREE.BackSide,
-    //     transparent: true,
-    //     opacity: 0.8
-    //   })
-    // );
-    // this.scene.add(stars);
-
-    // Crear pieza de rompecabezas en Santa María del Mar
     this.createPuzzlePiece();
 
     window.addEventListener('resize', this.onResize);
@@ -483,53 +461,73 @@ export class Home implements AfterViewInit, OnDestroy {
 
 
   showIntroOverlay = true;
-
-  hideIntroOverlay() {
-    this.showIntroOverlay = false;
-  }
+  
   @ViewChild('audioPlayer') audioPlayerRef!: ElementRef<HTMLAudioElement>;
 
-  // URL del archivo de música (asume que está en src/assets/)
+  // URL del archivo de música
   audioUrl: string = 'music/soundtrack.mp3';
 
   // Variables de estado
   showUnmutePrompt: boolean = false;
   audioBlocked: boolean = false;
+  isMuted: boolean = true; // Comienza muteado para permitir autoplay
 
-  // Escuchar el primer clic o toque en cualquier parte del documento
+  // ngAfterViewInit() {
+  //   // Intentar reproducir automáticamente después de que la vista esté lista
+  //   this.attemptAutoplay();
+  // }
+
+  hideIntroOverlay() {
+    this.showIntroOverlay = false;
+    // Intentar reproducir al cerrar el overlay
+    this.unmuteAndPlay();
+  }
+
+  // Escuchar el primer clic en el prompt de audio
   @HostListener('document:click', ['$event'])
-  onDocumentClick(event:any) {
-    // Si la música está bloqueada y hay un clic, intentamos reproducir
+  onDocumentClick(event: any) {
+    // Solo si el prompt está visible
     if (this.showUnmutePrompt) {
       this.unmuteAndPlay();
     }
   }
 
-  /**
-   * Intenta iniciar la reproducción automática al cargar el componente.
-   */
+  toggleMute() {
+    const audio: HTMLAudioElement = this.audioPlayerRef.nativeElement;
+    this.isMuted = !this.isMuted;
+    audio.muted = this.isMuted;
+    
+    console.log('Audio', this.isMuted ? 'silenciado' : 'activado');
+  }
+
+  unmute() {
+    this.unmuteAndPlay();
+  }
+
   attemptAutoplay(): void {
     const audio: HTMLAudioElement = this.audioPlayerRef.nativeElement;
 
-    // Los navegadores permiten 'autoplay' solo si el audio está silenciado.
+    // Configurar volumen
+    audio.volume = 0.2;
+    
+    // Los navegadores permiten autoplay solo si el audio está silenciado
     audio.muted = true;
+    this.isMuted = true;
 
-    // Devolvemos el control del flujo a Angular después de un micro-tiempo
-    // para asegurar que el DOM esté completamente listo.
+    // Esperar a que el DOM esté completamente listo
     setTimeout(() => {
       const playPromise = audio.play();
 
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            // El autoplay silencioso fue exitoso.
+            // Autoplay exitoso (silenciado)
             console.log("Autoplay exitoso (iniciado en silencio).");
-            // Podemos mostrar un prompt sutil para que el usuario desmutee
             this.showUnmutePrompt = true;
             this.audioBlocked = false;
           })
           .catch(error => {
-            // La promesa falló, el audio está bloqueado (¡suele pasar!)
+            // Autoplay bloqueado por el navegador
             console.warn("Autoplay bloqueado:", error);
             this.showUnmutePrompt = true;
             this.audioBlocked = true;
@@ -544,17 +542,25 @@ export class Home implements AfterViewInit, OnDestroy {
   unmuteAndPlay(): void {
     const audio: HTMLAudioElement = this.audioPlayerRef.nativeElement;
 
-    // Desactivamos el prompt, ya que el usuario ya interactuó
+    // Ocultar el prompt
     this.showUnmutePrompt = false;
 
-    // Quitamos el silencio y ajustamos el volumen
+    // Desactivar mute
     audio.muted = false;
+    this.isMuted = false;
 
-    // Si está pausado (porque fue bloqueado), lo intentamos de nuevo
+    // Asegurar que el volumen esté configurado
+    audio.volume = 0.1;
+
+    // Si está pausado, reproducir
     if (audio.paused) {
       audio.play().catch(error => {
         console.error("No se pudo reproducir después del clic:", error);
+        // Si falla, mostrar el prompt nuevamente
+        this.showUnmutePrompt = true;
       });
     }
+
+    console.log("Audio activado y reproduciendo");
   }
 }

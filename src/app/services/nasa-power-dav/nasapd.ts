@@ -1,152 +1,78 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+// src/app/services/nasa-power.service.ts
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 
-export type NasaCommunity = 'AG' | 'RE' | 'SB'; // AG: Agroclimatología, RE: Energía renovable, SB: Edificación sostenible
-export type NasaTemporal = 'hourly' | 'daily' | 'monthly' | 'climatology';
-export type NasaScope = 'point' | 'regional' | 'global';
+export interface NasaPowerResponse {
+  code: number;
+  description: string;
+  data: NasaPowerData | null;
+}
 
-@Injectable({
-  providedIn: 'root'
-})
-export class Nasapd {
+export interface NasaPowerData {
+  coordinates: { lat: string, lon: string };
+  range: { start: string, end: string };
+  parameters: NasaParameter[];
+}
 
-  private readonly baseUrl = 'http://localhost:4000/api';
+export interface NasaParameter {
+  variable: string;
+  values: Record<string, number>; // { YYYYMMDD: media }
+}
+
+@Injectable({ providedIn: 'root' })
+export class NasaPowerService {
+  private api = 'https://nasa-middleware-n13t.vercel.app/api/nasa-data.js';
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Obtiene datos meteorológicos del NASA POWER DAV.
-   * @param params objeto con parámetros: community, parameters, start, end, lat, lon, temporal
-   */
-  getData(params: {
-    community?: string;
-    parameters: string;
-    start: string;
-    end: string;
-    latitude: number;
-    longitude: number;
-    temporal?: 'hourly' | 'daily' | 'monthly';
-    format?: 'JSON' | 'CSV';
-  }): Observable<any> {
-    const {
-      community = 'AG',
-      parameters,
-      start,
-      end,
-      latitude,
-      longitude,
-      temporal = 'daily',
-      format = 'JSON',
-    } = params;
+  getData(lat: number|string, lon: number|string, start?: string, end?: string, grid?: 0|1): Observable<NasaPowerResponse> {
+    const today = new Date();
+    const yyyymmdd = (d: Date) => d.toISOString().slice(0,10).replace(/-/g,'');
+    const startDate = start || yyyymmdd(new Date(today.setDate(today.getDate()-7)));
+    const endDate = end || yyyymmdd(new Date());
 
-    const url = `${this.baseUrl}/temporal/${temporal}/point?parameters=${parameters}&community=${community}&latitude=${latitude}&longitude=${longitude}&start=${start}&end=${end}&format=${format}`;
-    return this.http.get(url);
+    const url = `${this.api}?lat=${lat}&lon=${lon}&start=${startDate}&end=${endDate}${grid ? `&grid=${grid}` : ''}`;
+
+    return this.http.get<NasaPowerResponse>(url).pipe(
+      map(res => {
+        if (res.code !== 200 || !res.data) return res;
+
+        // Función helper para obtener último valor de una variable
+        const lastValue = (variable: string) => {
+          const param = res.data!.parameters.find(p => p.variable === variable);
+          if (!param) return 'N/A';
+          const dates = Object.keys(param.values).sort();
+          return dates.length ? param.values[dates[dates.length - 1]] : 'N/A';
+        };
+
+        // Función helper para convertir a array { date, value } si se quiere graficar
+        const toArray = (variable: string) => {
+          const param = res.data!.parameters.find(p => p.variable === variable);
+          if (!param) return [];
+          return Object.entries(param.values).map(([date, value]) => ({ date, value }));
+        };
+
+        return {
+          ...res,
+          data: {
+            ...res.data,
+            // últimos valores
+            temperature: lastValue('T2M'),
+            humidity: lastValue('RH2M'),
+            solar_radiation: lastValue('ALLSKY_SFC_SW_DWN'),
+            wind_speed: lastValue('WS2M'),
+            pressure: lastValue('PS'),
+            max_temp: lastValue('T2M_MAX'),
+            min_temp: lastValue('T2M_MIN'),
+            // helper arrays para graficar
+            _arrays: res.data.parameters.reduce((acc:any, p) => {
+              acc[p.variable] = toArray(p.variable);
+              return acc;
+            }, {})
+          }
+        };
+      })
+    );
   }
-
-  /**
-   * Devuelve lista de parámetros meteorológicos disponibles en NASA POWER DAV.
-   * (Para llenar dropdowns o checkboxes)
-   */
-  getAvailableParameters(): { group: string; items: { code: string; label: string; unit: string }[] }[] {
-    return [
-      {
-        group: 'Temperatura',
-        items: [
-          { code: 'T2M', label: 'Temperatura promedio a 2m', unit: '°C' },
-          { code: 'T2M_MAX', label: 'Temperatura máxima diaria', unit: '°C' },
-          { code: 'T2M_MIN', label: 'Temperatura mínima diaria', unit: '°C' }
-        ]
-      },
-      {
-        group: 'Radiación solar',
-        items: [
-          { code: 'ALLSKY_SFC_SW_DWN', label: 'Radiación solar total', unit: 'kWh/m²/día' },
-          { code: 'CLRSKY_SFC_SW_DWN', label: 'Radiación solar cielo despejado', unit: 'kWh/m²/día' }
-        ]
-      },
-      {
-        group: 'Viento',
-        items: [
-          { code: 'WS10M', label: 'Velocidad del viento a 10m', unit: 'm/s' },
-          { code: 'WS50M', label: 'Velocidad del viento a 50m', unit: 'm/s' }
-        ]
-      },
-      {
-        group: 'Humedad / Precipitación',
-        items: [
-          { code: 'RH2M', label: 'Humedad relativa a 2m', unit: '%' },
-          { code: 'PRECTOTCORR', label: 'Precipitación total corregida', unit: 'mm/día' }
-        ]
-      }
-    ];
-  }
-
-  /**
-   * Ayuda a formatear fechas para las consultas (YYYYMMDD, YYYYMM, YYYY)
-   */
-  formatDate(date: Date, mode: 'daily' | 'monthly' | 'yearly'): string {
-    const y = date.getFullYear();
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    const d = date.getDate().toString().padStart(2, '0');
-
-    switch (mode) {
-      case 'yearly': return `${y}`;
-      case 'monthly': return `${y}${m}`;
-      default: return `${y}${m}${d}`;
-    }
-  }
-
-    /**
-   * Obtiene datos tipo GRID de NASA POWER (para mapas de calor)
-   */
-  getGridData(params: {
-    community?: string;
-    parameters: string;
-    start: string;
-    end: string;
-    bbox: string; // formato: lat_min,lon_min,lat_max,lon_max
-    temporal?: 'daily' | 'monthly';
-    format?: 'JSON' | 'CSV';
-    resolution?: number; // resolución en grados (0.5 = 50km aprox)
-  }): Observable<any> {
-    const {
-      community = 'AG',
-      parameters,
-      start,
-      end,
-      bbox,
-      temporal = 'daily',
-      format = 'JSON',
-      resolution = 0.5,
-    } = params;
-
-    const url = `${this.baseUrl}/temporal/${temporal}/regional?parameters=${parameters}&community=${community}&start=${start}&end=${end}&bbox=${bbox}&format=${format}&resolution=${resolution}`;
-    return this.http.get(url);
-  }
-
-
-  getRegionalData(params: {
-  parameters: string;
-  start: string;
-  end: string;
-  bbox: string; // lat_min,lon_min,lat_max,lon_max
-  community?: string;
-  format?: string;
-  resolution?: number;
-}): Observable<any> {
-  const {
-    parameters,
-    start,
-    end,
-    bbox,
-    community = 'AG',
-    format = 'JSON',
-    resolution = 0.25,
-  } = params;
-
-  const url = `http://localhost:4000/api/temporal/daily/regional?parameters=${parameters}&community=${community}&start=${start}&end=${end}&bbox=${bbox}&format=${format}&resolution=${resolution}`;
-  return this.http.get(url);
-}
-
 }

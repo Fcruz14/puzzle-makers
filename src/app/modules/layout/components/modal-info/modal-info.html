@@ -1,41 +1,41 @@
 <div 
-  class="fixed inset-0 bg-black/50 z-[10000] flex justify-center items-center overflow-y-auto"
+  class="fixed inset-0 z-[10000] flex justify-center items-center overflow-y-auto
+         bg-gradient-to-b from-blue-900/80 via-blue-800/70 to-black/50 backdrop-blur-sm"
   (click)="onClose()"
 >
   <div 
-    class="relative w-[95%] max-w-6xl 
-           transform bg-white rounded-xl shadow-2xl p-6 transition-all duration-500 ease-out modal-dropdown-animation
-           max-h-[95vh] overflow-y-auto"
+    class="relative w-[98%] max-w-7xl h-[95vh] transform bg-gradient-to-br from-white/90 to-blue-50/80
+           rounded-2xl shadow-2xl p-6 md:p-8 transition-all duration-500 ease-out overflow-hidden"
     (click)="$event.stopPropagation()"
   >
     <button 
       (click)="onClose()"
-      class="sticky top-0 float-right text-gray-500 hover:text-gray-900 z-10 p-2 rounded-full hover:bg-gray-100 transition"
+      class="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-10 p-2 rounded-full
+             hover:bg-gray-200 transition"
       aria-label="Cerrar modal"
     >
-      <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
     
-    <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-gray-700 clear-right">Visor de Documentos PDF</h2>
+    <div class="flex flex-col md:flex-row h-full gap-4">
 
-    <div class="flex flex-col md:flex-row h-[70vh] min-h-[400px]">
-
-      <div class="w-full md:w-1/4 pr-4 md:border-r border-gray-200 overflow-y-auto mb-4 md:mb-0 pb-2">
-        <h3 class="text-lg font-semibold mb-2 text-gray-600">Documentos</h3>
+      <!-- Lista lateral -->
+      <div class="w-full md:w-1/4 overflow-y-auto pr-2 md:pr-4 md:border-r border-blue-200">
+        <h3 class="text-lg font-bold mb-3 text-blue-800">Documentos</h3>
         <ul class="space-y-2">
           @for (pdf of pdfs(); track pdf.id) {
             <li 
               (click)="selectPdf(pdf)"
               [class.bg-blue-100]="pdf.id === selectedPdf()?.id"
-              [class.border-blue-500]="pdf.id === selectedPdf()?.id"
-              class="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+              [class.border-blue-400]="pdf.id === selectedPdf()?.id"
+              class="p-3 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors shadow-sm"
             >
-              <p class="font-medium text-gray-800 truncate">
+              <p class="font-medium text-gray-800 break-words">
                 <span class="text-blue-600 mr-2">📄</span> {{ pdf.name }}
               </p>
-              <p class="text-xs text-gray-500">{{ pdf.url | slice:0:30 }}...</p>
+              <p class="text-xs text-gray-500 break-words">{{ pdf.url }}</p>
             </li>
           } @empty {
             <p class="text-gray-500 italic p-3">No hay documentos disponibles.</p>
@@ -43,20 +43,22 @@
         </ul>
       </div>
 
-      <div class="w-full md:w-3/4 pl-4 flex flex-col pt-2 md:pt-0">
+      <!-- Visor de PDF -->
+      <div class="w-full md:w-3/4 flex flex-col">
         @if (selectedPdf()) {
-          <p class="text-lg font-semibold mb-2 text-gray-600">{{ selectedPdf()!.name }}</p>
+          <p class="text-lg font-semibold mb-3 text-blue-900">{{ selectedPdf()!.name }}</p>
           <iframe 
             [src]="selectedPdf()!.url | safeUrl"
-            class="flex-grow w-full border border-gray-300 rounded-lg shadow-xl"
+            class="flex-1 w-full border border-blue-200 rounded-xl shadow-lg"
             title="Visor de PDF: {{ selectedPdf()!.name }}"
           ></iframe>
         } @else {
-          <div class="flex items-center justify-center flex-grow text-gray-500 bg-gray-50 rounded-lg shadow-inner">
+          <div class="flex items-center justify-center flex-1 text-gray-500 bg-blue-50 rounded-xl shadow-inner">
             <p class="text-center">Selecciona un documento de la lista para previsualizarlo.</p>
           </div>
         }
       </div>
+
     </div>
   </div>
 </div>

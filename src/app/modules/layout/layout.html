@@ -6,12 +6,24 @@
 
 }
 
-<app-left-sidebar/>
-<app-map/>
+@if(showIntroOverlay){
+    <div class="z-[9999] intro-overlay fixed inset-0 flex items-center justify-center 
+        bg-black/80 text-white text-2xl font-semibold cursor-pointer select-none
+        transition-opacity duration-700 z-40"  
+        (click)="hideIntroOverlay()">
+        <span class="animate-pulse">Haz click para continuar</span>
+    </div>
+}
+    
+<app-left-sidebar  (filterChange)="sendEvent($event)"/>
+<app-map (getQuestion)="getQuestion($event)"  />
 <app-notification/>
 <app-right-sidebar/>
-<app-search-bar/>
+<!-- <app-search-bar/> -->
 
+<app-mini-game  />
+  
+<audio #audioPlayer [src]="audioUrl" loop muted volume="0.1"></audio>
 
-<app-mini-game />
+<div *ngIf="showUnmutePrompt" class="unmute-overlay"></div>
 
