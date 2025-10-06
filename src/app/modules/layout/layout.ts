@@ -4,14 +4,14 @@ import { MapC } from './components/map/map';
 import { Notification } from './components/notification/notification';
 import { RightSidebar } from './components/right-sidebar/right-sidebar';
 import { LeftSidebar } from './components/left-sidebar/left-sidebar';
-import { SearchBar } from './components/search-bar/search-bar';
+// import { SearchBar } from './components/search-bar/search-bar';
 import { Load } from '../../shared/components/load/load';
 import { NasaPowerService } from '../../services/nasa-power-dav/nasapd';
 import { MiniGame } from './components/mini-game/mini-game';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, MapC,Notification,RightSidebar,LeftSidebar,SearchBar,
+  imports: [CommonModule, MapC,Notification,RightSidebar,LeftSidebar,
     Load,MiniGame
   ],
   templateUrl: './layout.html',

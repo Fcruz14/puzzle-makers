@@ -12,7 +12,7 @@ interface FilterOption {
 
 @Component({
   selector: 'app-left-sidebar',
-  imports: [CommonModule, NgClass, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './left-sidebar.html',
   styleUrl: './left-sidebar.scss'
 })
