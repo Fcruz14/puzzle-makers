@@ -50,7 +50,7 @@ export class Layout implements OnInit, AfterViewInit{
   @ViewChild('audioPlayer') audioPlayerRef!: ElementRef<HTMLAudioElement>;
 
   // URL del archivo de música (asume que está en src/assets/)
-  audioUrl: string = 'music/sound_map.mp3';
+  audioUrl: string = 'music/sound_map_2.mp3';
 
   // Variables de estado
   showUnmutePrompt: boolean = false;

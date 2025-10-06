@@ -1,9 +1,13 @@
 <!-- Sidebar principal -->
 <div
-  class="z-[9900] fixed top-0 left-0 h-full bg-white/90 backdrop-blur-md 
+  class="z-[9900] fixed top-0 left-0 h-full bg-white/90 backdrop-blur-md
          shadow-xl border-r border-gray-200 flex flex-col transition-transform duration-500
-         w-full sm:w-64 md:w-72
-         overflow-y-auto" [class.-translate-x-60]="!isOpen">
+         w-64 sm:w-64 md:w-72
+         max-w-full sm:max-w-none
+         overflow-y-auto
+         transform
+         -translate-x-full sm:translate-x-0"
+  [class.translate-x-0]="isOpen">
   <!-- Header con logo y botón -->
   <div class="flex items-center justify-between p-4 border-b border-gray-300">
     <div class="flex items-center space-x-2">

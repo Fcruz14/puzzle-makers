@@ -304,10 +304,6 @@ export class Home implements AfterViewInit, OnDestroy {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   };
 
-  // ============================
-  // 🖱️ INTERACCIÓN CON CLICKS Y DRAG
-  // ============================
-
   private setupClickHandler(): void {
     this.canvasRef.nativeElement.addEventListener('click', this.onCanvasClick);
   }
@@ -396,17 +392,13 @@ export class Home implements AfterViewInit, OnDestroy {
     }
   };
 
-  // ============================
-  // 🚀 ZOOM Y REDIRECCIÓN
-  // ============================
-
   startJourney(): void {
     console.log('¡Click en el marcador! Iniciando viaje...');
     this.isZooming = true;
     this.zoomProgress = 0;
   }
 
-  private zoomToTarget(): void {
+   zoomToTarget(): void {
     this.zoomProgress = Math.min(1, this.zoomProgress + this.ZOOM_SPEED);
     
     // Obtener la posición EXACTA de la pieza del puzzle en el espacio mundial
@@ -465,7 +457,7 @@ export class Home implements AfterViewInit, OnDestroy {
   @ViewChild('audioPlayer') audioPlayerRef!: ElementRef<HTMLAudioElement>;
 
   // URL del archivo de música
-  audioUrl: string = 'music/soundtrack.mp3';
+  audioUrl: string = 'music/soundtrack_2.mp3';
 
   // Variables de estado
   showUnmutePrompt: boolean = false;

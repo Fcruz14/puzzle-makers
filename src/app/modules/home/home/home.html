@@ -121,9 +121,15 @@
         </div>
       </div>
 
-      <button class="">
-
+      <button (click)="startJourney()"
+        class="absolute left-1/2 top-3/4 transform -translate-x-1/2 -translate-y-1/2
+              bg-transparent border border-white text-white px-6 py-3 rounded-md
+              hover:bg-white/90 hover:text-black shadow-md hover:shadow-lg
+              transition-all duration-500 ease-in-out cursor-pointer"
+      >
+        Iniciar Viaje
       </button>
+
     }
 
     @if(!isZooming && !showIntroOverlay){
