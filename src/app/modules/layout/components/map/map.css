@@ -6,10 +6,10 @@
   }
   
   #map {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    inset: 0;
+
+  touch-action: pan-x pan-y; /* Permite scroll pero no otros gestos */
+  -webkit-user-select: none;
+  user-select: none;
   }
 .map-container {
   height: 100vh;
@@ -19,4 +19,8 @@
 
 .leaflet-marker-icon {
   transition: transform 0.2s ease-in-out;
+}
+
+.leaflet-container {
+  touch-action: pan-x pan-y;
 }

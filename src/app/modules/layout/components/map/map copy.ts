@@ -4,8 +4,10 @@ import { Global } from 'app/services/global';
 import { NasaPowerResponse, NasaPowerService } from 'app/services/nasa-power-dav/nasapd';
 import * as L from 'leaflet';
 import 'leaflet.heat';
-import { of, Subject } from 'rxjs';
-import { catchError, debounceTime, retry, switchMap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { switchMap, catchError, retry, debounceTime } from 'rxjs/operators';
+import { of } from 'rxjs';
+
 interface POI {
   id: number;
   name: string;
@@ -82,28 +84,27 @@ export class MapC implements OnInit {
   private consecutiveErrors = 0;
   private readonly MAX_RETRY_ATTEMPTS = 2;
 
-addHeatmapLayer() {
-  // Crear capa de mapa de calor
-  // this.heatmapLayer = (L as any).heatLayer(this.heatmapData, {
-  //   radius: 35,
-  //   blur: 25,
-  //   maxZoom: 17,
-  //   max: 1.0,
-  //   gradient: {
-  //     0.0: 'blue',
-  //     0.3: 'cyan',
-  //     0.5: 'lime',
-  //     0.7: 'yellow',
-  //     1.0: 'red'
-  //   }
-  // });
+  addHeatmapLayer() {
+    // Crear capa de mapa de calor
+    this.heatmapLayer = (L as any).heatLayer(this.heatmapData, {
+      radius: 35,
+      blur: 25,
+      maxZoom: 17,
+      max: 1.0,
+      gradient: {
+        0.0: 'blue',
+        0.3: 'cyan',
+        0.5: 'lime',
+        0.7: 'yellow',
+        1.0: 'red'
+      }
+    });
 
-  // // Agregar al mapa si está activado
-  // if (this.showHeatmap()) {
-  //   this.heatmapLayer.addTo(this.map);
-  // }
-}
-
+    // Agregar al mapa si está activado
+    if (this.showHeatmap()) {
+      this.heatmapLayer.addTo(this.map);
+    }
+  }
 
   // Agregar este método para actualizar el heatmap con datos reales
   updateHeatmapWithRealData(lat: number, lng: number, temperature: number) {
@@ -304,24 +305,23 @@ addHeatmapLayer() {
     this.refreshPOIMarkers();
   }
 
-ngOnInit() {
-  const lat = -12.3856;
-  const lon = -76.7815;
-  this.initMap(lat, lon);
-  this.placeCharacter(lat, lon); // marcador inicial
-  this.addPOIMarkers();
-  this.addHeatmapLayer();
-  this.setupRequestStream();
-  this.enableMapClickMove();
-  this.toggleHeatmap();
+  ngOnInit() {
+    const lat = -12.3856;
+    const lon = -76.7815;
+    this.initMap(lat, lon);
+    this.placeCharacter(lat, lon);
+    this.addPOIMarkers();
+    this.addHeatmapLayer();
+    this.setupRequestStream();
+    this.enableMapClickMove();
+    this.toggleHeatmap();
 
-  // Suscripción al totalPoints global
-  this._global.totalPoints$.subscribe(value => {
-    this.totalPoints = value;
-    this.updateCharacterIcon(); // actualizamos el personaje según puntaje
-  });
-}
-
+    // Suscripción al totalPoints global
+    this._global.totalPoints$.subscribe(value => {
+      this.totalPoints = value;
+      this.updateCharacterIcon();
+    });
+  }
 
   updateCharacterIcon() {
     if (!this.characterMarker) return;
@@ -564,11 +564,11 @@ ngOnInit() {
           `;
           this.getQuestion.emit(res.data);
           this.characterMarker.bindPopup(popupContent).openPopup();
-          // this.updateHeatmapWithRealData(
-          //   res.data.coordinates.lat, 
-          //   res.data.coordinates.lon, 
-          //   res.data.temperature
-          // );
+          this.updateHeatmapWithRealData(
+            res.data.coordenates.lat, 
+            res.data.coordenates.lon, 
+            res.data.temperature
+          );
         } else {
           this.characterMarker.bindPopup('⚠️ No se pudieron obtener datos climáticos.').openPopup();
         }
@@ -576,90 +576,100 @@ ngOnInit() {
     });
   }
 
-enableMapClickMove() {
-  let startPos: { x: number; y: number } | null = null;
-  let startTime = 0;
-  let hasMoved = false;
+  enableMapClickMove() {
+    let startPos: { x: number; y: number } | null = null;
+    let startTime = 0;
+    let hasMoved = false;
 
-  const handleStart = (x: number, y: number) => {
-    startPos = { x, y };
-    startTime = Date.now();
-    hasMoved = false;
-    this.isDragging = false;
-  };
+    // Manejador unificado para el inicio (mouse o touch)
+    const handleStart = (clientX: number, clientY: number) => {
+      startPos = { x: clientX, y: clientY };
+      startTime = Date.now();
+      hasMoved = false;
+      this.isDragging = false;
+    };
 
-  const handleMove = (x: number, y: number) => {
-    if (!startPos) return;
-    const dx = x - startPos.x;
-    const dy = y - startPos.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance > this.DRAG_THRESHOLD) {
-      hasMoved = true;
-      this.isDragging = true;
-    }
-  };
+    // Manejador unificado para el movimiento
+    const handleMove = (clientX: number, clientY: number) => {
+      if (!startPos) return;
 
-  const handleEnd = (latlng: L.LatLng) => {
-    const duration = Date.now() - startTime;
-    if (!hasMoved && duration < this.DRAG_TIME_THRESHOLD && !this.isLoadingData()) {
-      console.log('✅ Click válido:', latlng);
-      this.animateMarkerTo(latlng.lat, latlng.lng);
-      this.newRequest$.next({ lat: latlng.lat, lng: latlng.lng });
-    }
-    startPos = null;
-    startTime = 0;
-    hasMoved = false;
-    this.isDragging = false;
-  };
+      const distance = Math.sqrt(
+        Math.pow(clientX - startPos.x, 2) +
+        Math.pow(clientY - startPos.y, 2)
+      );
 
-  // === 🖱️ Eventos DESKTOP ===
-  this.map.on('mousedown', (e: L.LeafletMouseEvent) => {
-    e.originalEvent.stopPropagation();
-    handleStart(e.originalEvent.clientX, e.originalEvent.clientY);
-  });
+      if (distance > this.DRAG_THRESHOLD) {
+        hasMoved = true;
+        this.isDragging = true;
+      }
+    };
 
-  this.map.on('mousemove', (e: L.LeafletMouseEvent) => {
-    handleMove(e.originalEvent.clientX, e.originalEvent.clientY);
-  });
+    // Manejador unificado para el fin (mouse o touch)
+    const handleEnd = (latlng: L.LatLng) => {
+      const duration = Date.now() - startTime;
+      
+      // Solo procesar si fue un tap/click válido
+      if (!hasMoved && 
+          duration < this.DRAG_TIME_THRESHOLD && 
+          !this.isLoadingData()) {
+        console.log('Click válido detectado:', latlng);
+        this.animateMarkerTo(latlng.lat, latlng.lng);
+        this.newRequest$.next({ lat: latlng.lat, lng: latlng.lng });
+      }
 
-  this.map.on('mouseup', (e: L.LeafletMouseEvent) => {
-    handleEnd(e.latlng);
-  });
+      // Reset
+      startPos = null;
+      startTime = 0;
+      hasMoved = false;
+      this.isDragging = false;
+    };
 
-  // Fallback: click por si mouseup no llega
-  this.map.on('click', (e: L.LeafletMouseEvent) => {
-    if (!this.isDragging && !this.isLoadingData()) {
-      console.log('🖱️ Fallback click:', e.latlng);
-      this.animateMarkerTo(e.latlng.lat, e.latlng.lng);
-      this.newRequest$.next({ lat: e.latlng.lat, lng: e.latlng.lng });
-    }
-  });
+    // Eventos para MOUSE (desktop)
+    this.map.on('mousedown', (e: L.LeafletMouseEvent) => {
+      handleStart(e.originalEvent.clientX, e.originalEvent.clientY);
+    });
 
-  // === 📱 Eventos TOUCH ===
-  this.map.on('touchstart', (e: any) => {
-    if (e.touches?.length === 1) {
-      const t = e.touches[0];
-      handleStart(t.clientX, t.clientY);
-    }
-  });
+    this.map.on('mousemove', (e: L.LeafletMouseEvent) => {
+      handleMove(e.originalEvent.clientX, e.originalEvent.clientY);
+    });
 
-  this.map.on('touchmove', (e: any) => {
-    if (e.touches?.length === 1) {
-      const t = e.touches[0];
-      handleMove(t.clientX, t.clientY);
-    }
-  });
+    this.map.on('mouseup', (e: L.LeafletMouseEvent) => {
+      handleEnd(e.latlng);
+    });
 
-  this.map.on('touchend', (e: any) => {
-    if (e.changedTouches?.length === 1 && startPos) {
-      const t = e.changedTouches[0];
-      const latlng = this.map.containerPointToLatLng(L.point(t.clientX, t.clientY));
-      handleEnd(latlng);
-    }
-  });
-}
+    // Eventos para TOUCH (móviles)
+    const mapContainer = this.map.getContainer();
+    
+    mapContainer.addEventListener('touchstart', (e: TouchEvent) => {
+      if (e.touches.length === 1) { // Solo un dedo
+        const touch = e.touches[0];
+        handleStart(touch.clientX, touch.clientY);
+      }
+    }, { passive: false }); // Cambiado a false para poder prevenir
 
+    mapContainer.addEventListener('touchmove', (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        handleMove(touch.clientX, touch.clientY);
+        
+        // Prevenir pull-to-refresh solo si el usuario está arrastrando el mapa
+        if (hasMoved) {
+          e.preventDefault();
+        }
+      }
+    }, { passive: false }); // Cambiado a false para poder prevenir
 
+    mapContainer.addEventListener('touchend', (e: TouchEvent) => {
+      if (e.changedTouches.length === 1 && startPos) {
+        const touch = e.changedTouches[0];
+        // Convertir posición del touch a coordenadas del mapa
+        const point = this.map.containerPointToLatLng(
+          L.point(touch.clientX, touch.clientY)
+        );
+        handleEnd(point);
+      }
+    }, { passive: true });
+  }
 
   animateMarkerTo(targetLat: number, targetLng: number) {
     if (!this.characterMarker) return;

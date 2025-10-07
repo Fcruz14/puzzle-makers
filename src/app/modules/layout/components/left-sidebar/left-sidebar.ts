@@ -1,5 +1,5 @@
-import { CommonModule, NgClass } from '@angular/common';
-import { Component, output, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, output } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 interface FilterOption {
@@ -16,48 +16,18 @@ interface FilterOption {
   templateUrl: './left-sidebar.html',
   styleUrl: './left-sidebar.scss'
 })
-export class LeftSidebar {
+export class LeftSidebar implements OnInit {
   isOpen = true;
   isTutor = false;
   selectedOption: string | null = null;
   filterChange = output<{ type: string; active: boolean }>();
-  
+
   filterOptions: FilterOption[] = [
-    {
-      type: 'school',
-      label: 'Colegios',
-      emoji: '🏫',
-      color: '#3B82F6',
-      active: true
-    },
-    {
-      type: 'park',
-      label: 'Parques',
-      emoji: '🌳',
-      color: '#10B981',
-      active: true
-    },
-    {
-      type: 'hospital',
-      label: 'Centros de Salud',
-      emoji: '🏥',
-      color: '#EF4444',
-      active: true
-    },
-    {
-      type: 'beach',
-      label: 'Playas',
-      emoji: '🏖️',
-      color: '#06B6D4',
-      active: true
-    },
-    {
-      type: 'market',
-      label: 'Mercados',
-      emoji: '🛒',
-      color: '#F59E0B',
-      active: true
-    },
+    { type: 'school', label: 'Colegios', emoji: '🏫', color: '#3B82F6', active: true },
+    { type: 'park', label: 'Parques', emoji: '🌳', color: '#10B981', active: true },
+    { type: 'hospital', label: 'Centros de Salud', emoji: '🏥', color: '#EF4444', active: true },
+    { type: 'beach', label: 'Playas', emoji: '🏖️', color: '#06B6D4', active: true },
+    { type: 'market', label: 'Mercados', emoji: '🛒', color: '#F59E0B', active: true },
   ];
 
   private counts = {
@@ -68,6 +38,17 @@ export class LeftSidebar {
     market: 2
   };
 
+  ngOnInit() {
+    // Detecta móvil por ancho de pantalla o por soporte táctil
+    const isMobile =
+      window.innerWidth < 768 ||
+      ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+
+    if (isMobile) {
+      this.isOpen = false;
+    }
+  }
+
   toggleFilter(type: string) {
     const filter = this.filterOptions.find(f => f.type === type);
     if (filter) {
@@ -75,9 +56,11 @@ export class LeftSidebar {
       this.filterChange.emit({ type, active: filter.active });
     }
   }
+
   toggleSidebar() {
     this.isOpen = !this.isOpen;
   }
+
   toggleAll() {
     const shouldActivate = !this.allActive();
     this.filterOptions.forEach(filter => {
@@ -91,8 +74,8 @@ export class LeftSidebar {
   }
 
   getFilterButtonClass(filter: FilterOption): string {
-    return filter.active 
-      ? 'bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200' 
+    return filter.active
+      ? 'bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200'
       : 'bg-gray-50 border-2 border-gray-200 opacity-60';
   }
 

@@ -1,7 +1,9 @@
 {
   "name": "puzzle-makers",
   "version": "0.0.0",
+  "license": "Proprietary",
   "scripts": {
+    "shared": "ng serve --configuration=development --host 0.0.0.0",
     "dev": "ng serve -o",
     "ng": "ng",
     "start": "ng serve",

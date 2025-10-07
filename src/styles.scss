@@ -1,3 +1,8 @@
-@import "tailwindcss";
+@use "tailwindcss";
 
 
+html, body {
+  overscroll-behavior-y: contain; /* o 'none' si quieres bloquear totalmente */
+  overscroll-behavior-x: none;
+  height: 100%;
+}
